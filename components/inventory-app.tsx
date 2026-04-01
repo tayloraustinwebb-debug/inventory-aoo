@@ -72,10 +72,33 @@ function mapDbItem(item: DbInventoryItem): InventoryItem {
   };
 }
 
-async function fetchInventoryItems() {
+async function fetchWorkspaceId() {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("No authenticated user found.");
+  }
+
+  const { data, error } = await supabase
+    .from("workspace_members")
+    .select("workspace_id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
+
+  if (error) throw error;
+
+  return data.workspace_id as string;
+}
+
+async function fetchInventoryItems(workspaceId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select("*")
+    .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -120,6 +143,7 @@ function SectionCard({ title, subtitle, action, children }: { title: string; sub
 
 export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppView }) {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<AppView>(initialView);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("All");
@@ -150,11 +174,14 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
   useEffect(() => {
   async function load() {
     try {
-      const dbItems = await fetchInventoryItems();
+      const foundWorkspaceId = await fetchWorkspaceId();
+      setWorkspaceId(foundWorkspaceId);
+
+      const dbItems = await fetchInventoryItems(foundWorkspaceId);
       setItems(dbItems);
     } catch (error) {
       console.error("Failed to load inventory items", error);
-      setItems(seedItems());
+      setItems([]);
     }
   }
 
@@ -214,6 +241,7 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 
   async function saveItem() {
   if (!form.name.trim()) return;
+    if (!workspaceId) return;
 
   const payload = {
     name: form.name,
@@ -236,7 +264,7 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
     cheapest_store: form.preferredStore || "—",
     updated_at: new Date().toISOString(),
     last_price_checked_at: new Date().toISOString(),
-    workspace_id: "00000000-0000-0000-0000-000000000001",
+    workspace_id: workspaceId,
   };
 
   try {
@@ -252,7 +280,7 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
       if (error) throw error;
     }
 
-    const dbItems = await fetchInventoryItems();
+    const dbItems = await fetchInventoryItems(workspaceId);
     setItems(dbItems);
     setEditorOpen(false);
     resetForm();
@@ -262,6 +290,8 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 }
 
   async function adjustQuantity(id: string, delta: number) {
+    if (!workspaceId) return;
+    
   const current = items.find((item) => item.id === id);
   if (!current) return;
 
@@ -287,11 +317,17 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 }
 
   async function deleteItem(id: string) {
+  if (!workspaceId) return;
+
   try {
-    const { error } = await supabase.from("inventory_items").delete().eq("id", id);
+    const { error } = await supabase
+      .from("inventory_items")
+      .delete()
+      .eq("id", id);
+
     if (error) throw error;
 
-    const dbItems = await fetchInventoryItems();
+    const dbItems = await fetchInventoryItems(workspaceId);
     setItems(dbItems);
   } catch (error) {
     console.error("Failed to delete item", error);
@@ -299,6 +335,8 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 }
 
   async function moveItem(id: string) {
+  if (!workspaceId) return;
+
   const current = items.find((item) => item.id === id);
   if (!current) return;
 
@@ -315,13 +353,12 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 
     if (error) throw error;
 
-    const dbItems = await fetchInventoryItems();
+    const dbItems = await fetchInventoryItems(workspaceId);
     setItems(dbItems);
   } catch (error) {
     console.error("Failed to move item", error);
   }
 }
-
   function simulatePriceCheck(item: InventoryItem) {
     const query = encodeURIComponent(`${item.brand || ""} ${item.name}`.trim());
     window.open(`https://www.google.com/search?tbm=shop&q=${query}`, "_blank", "noopener,noreferrer");
