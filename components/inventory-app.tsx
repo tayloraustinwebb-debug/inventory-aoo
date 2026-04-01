@@ -465,6 +465,7 @@ alert("Supply saved");
       : JSON.stringify(error)
   );
 }
+  }
 
   async function adjustQuantity(id: string, delta: number) {
     if (!workspaceId) return;
