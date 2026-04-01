@@ -123,7 +123,7 @@ async function fetchWorkspaceContext() {
     .select("workspace_id")
     .eq("user_id", user.id)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
