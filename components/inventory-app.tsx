@@ -1,5 +1,6 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,19 +25,61 @@ const STORAGE_KEY = "paint-pals-real-app-starter-v1";
 const views = ["dashboard", "inventory", "reorder", "prices", "team", "settings"] as const;
 type AppView = (typeof views)[number];
 
-function loadItems() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seedItems();
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed.items) ? parsed.items : seedItems();
-  } catch {
-    return seedItems();
-  }
+const supabase = createClient();
+
+type DbInventoryItem = {
+  id: string;
+  name: string;
+  category: string | null;
+  unit: string | null;
+  quantity: number;
+  min_stock: number;
+  unit_cost: number;
+  location_type: string | null;
+  sublocation: string | null;
+  brand: string | null;
+  notes: string | null;
+  preferred_store: string | null;
+  product_url: string | null;
+  assigned_to: string | null;
+  status: string | null;
+  cheapest_store: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  last_price_checked_at: string | null;
+};
+
+function mapDbItem(item: DbInventoryItem): InventoryItem {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category || "Misc",
+    unit: item.unit || "pcs",
+    quantity: item.quantity,
+    minStock: item.min_stock,
+    unitCost: Number(item.unit_cost || 0),
+    locationType: (item.location_type as "Van" | "Shop") || "Shop",
+    sublocation: item.sublocation || "",
+    brand: item.brand || "",
+    notes: item.notes || "",
+    preferredStore: item.preferred_store || "",
+    productUrl: item.product_url || "",
+    assignedTo: item.assigned_to || "",
+    status: (item.status as "in_stock" | "reorder") || "in_stock",
+    cheapestStore: item.cheapest_store || "",
+    lastUpdated: item.updated_at || new Date().toISOString(),
+    priceUpdatedAt: item.last_price_checked_at || new Date().toISOString(),
+  };
 }
 
-function saveItems(items: InventoryItem[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ items }));
+async function fetchInventoryItems() {
+  const { data, error } = await supabase
+    .from("inventory_items")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(mapDbItem);
 }
 
 function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string; subtitle: string; icon: React.ComponentType<{ className?: string }> }) {
@@ -104,8 +147,20 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
     assignedTo: ""
   });
 
-  useEffect(() => { setItems(loadItems()); }, []);
-  useEffect(() => { if (items.length) saveItems(items); }, [items]);
+  useEffect(() => {
+  async function load() {
+    try {
+      const dbItems = await fetchInventoryItems();
+      setItems(dbItems);
+    } catch (error) {
+      console.error("Failed to load inventory items", error);
+      setItems(seedItems());
+    }
+  }
+
+  load();
+}, []);
+  
 
   const filteredItems = useMemo(() => {
     return items
@@ -157,40 +212,115 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
     setEditorOpen(true);
   }
 
-  function saveItem() {
-    if (!form.name.trim()) return;
-    const payload: InventoryItem = {
-      id: editingId ?? crypto.randomUUID(),
-      ...form,
-      quantity: Number(form.quantity || 0),
-      minStock: Number(form.minStock || 0),
-      unitCost: Number(form.unitCost || 0),
-      status: Number(form.quantity || 0) <= Number(form.minStock || 0) ? "reorder" : "in_stock",
-      cheapestStore: form.preferredStore || "—",
-      lastUpdated: new Date().toISOString(),
-      priceUpdatedAt: new Date().toISOString()
-    };
-    if (editingId) setItems((prev) => prev.map((item) => (item.id === editingId ? payload : item)));
-    else setItems((prev) => [payload, ...prev]);
+  async function saveItem() {
+  if (!form.name.trim()) return;
+
+  const payload = {
+    name: form.name,
+    category: form.category,
+    unit: form.unit,
+    quantity: Number(form.quantity || 0),
+    min_stock: Number(form.minStock || 0),
+    unit_cost: Number(form.unitCost || 0),
+    location_type: form.locationType,
+    sublocation: form.sublocation,
+    brand: form.brand,
+    notes: form.notes,
+    preferred_store: form.preferredStore,
+    product_url: form.productUrl,
+    assigned_to: form.assignedTo,
+    status:
+      Number(form.quantity || 0) <= Number(form.minStock || 0)
+        ? "reorder"
+        : "in_stock",
+    cheapest_store: form.preferredStore || "—",
+    updated_at: new Date().toISOString(),
+    last_price_checked_at: new Date().toISOString(),
+    workspace_id: "00000000-0000-0000-0000-000000000001",
+  };
+
+  try {
+    if (editingId) {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update(payload)
+        .eq("id", editingId);
+
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from("inventory_items").insert(payload);
+      if (error) throw error;
+    }
+
+    const dbItems = await fetchInventoryItems();
+    setItems(dbItems);
     setEditorOpen(false);
     resetForm();
+  } catch (error) {
+    console.error("Failed to save item", error);
   }
+}
 
-  function adjustQuantity(id: string, delta: number) {
-    setItems((prev) => prev.map((item) => {
-      if (item.id !== id) return item;
-      const nextQty = Math.max(0, item.quantity + delta);
-      return { ...item, quantity: nextQty, status: nextQty <= item.minStock ? "reorder" : "in_stock", lastUpdated: new Date().toISOString() };
-    }));
-  }
+  async function adjustQuantity(id: string, delta: number) {
+  const current = items.find((item) => item.id === id);
+  if (!current) return;
 
-  function deleteItem(id: string) {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  }
+  const nextQty = Math.max(0, current.quantity + delta);
 
-  function moveItem(id: string) {
-    setItems((prev) => prev.map((item) => item.id === id ? { ...item, locationType: item.locationType === "Van" ? "Shop" : "Van", lastUpdated: new Date().toISOString() } : item));
+  try {
+    const { error } = await supabase
+      .from("inventory_items")
+      .update({
+        quantity: nextQty,
+        status: nextQty <= current.minStock ? "reorder" : "in_stock",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) throw error;
+
+    const dbItems = await fetchInventoryItems();
+    setItems(dbItems);
+  } catch (error) {
+    console.error("Failed to adjust quantity", error);
   }
+}
+
+  async function deleteItem(id: string) {
+  try {
+    const { error } = await supabase.from("inventory_items").delete().eq("id", id);
+    if (error) throw error;
+
+    const dbItems = await fetchInventoryItems();
+    setItems(dbItems);
+  } catch (error) {
+    console.error("Failed to delete item", error);
+  }
+}
+
+  async function moveItem(id: string) {
+  const current = items.find((item) => item.id === id);
+  if (!current) return;
+
+  const nextLocation = current.locationType === "Van" ? "Shop" : "Van";
+
+  try {
+    const { error } = await supabase
+      .from("inventory_items")
+      .update({
+        location_type: nextLocation,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) throw error;
+
+    const dbItems = await fetchInventoryItems();
+    setItems(dbItems);
+  } catch (error) {
+    console.error("Failed to move item", error);
+  }
+}
 
   function simulatePriceCheck(item: InventoryItem) {
     const query = encodeURIComponent(`${item.brand || ""} ${item.name}`.trim());
