@@ -125,9 +125,19 @@ async function fetchWorkspaceContext() {
     .limit(1)
     .maybeSingle();
 
- if (error) throw error;
+if (error) throw error;
+
+console.log("AUTH USER ID:", user.id);
+console.log("WORKSPACE MEMBER RESULT:", data);
+
 if (!data) {
-  throw new Error("No workspace membership found.");
+  return {
+    workspaceId: null,
+    userEmail:
+      user.email ??
+      (user.user_metadata?.email as string | undefined) ??
+      "Signed in",
+  };
 }
 
 return {
@@ -410,10 +420,10 @@ export function InventoryApp({
     return;
   }
 
-  if (!workspaceId) {
-    alert("No workspaceId");
-    return;
-  }
+ if (!workspaceId) {
+  alert("No workspaceId - check browser console");
+  return;
+}
 
     const payload = {
       name: form.name,
