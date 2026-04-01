@@ -457,24 +457,29 @@ setUserEmail(user?.email ?? null);
           <div className="pointer-events-none absolute -right-8 top-8 h-40 w-40 rounded-full bg-violet-200/35 blur-3xl" />
           <div className="relative z-10 space-y-6">
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="grid gap-4 xl:grid-cols-[1.35fr,0.9fr]">
-              <SectionCard title={workspaceName} subtitle="Starter build for a real phone and tablet app with cloud sync, team access, reorder workflows, and live pricing architecture." action={
-  <div className="flex flex-wrap items-center gap-2">
-    {userEmail ? (
-      <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
-        {userEmail}
-      </div>
-    ) : null}
+              <SectionCard
+  title={workspaceName}
+  subtitle="Starter build for a real phone and tablet app with cloud sync, team access, reorder workflows, and live pricing architecture."
+  action={
+    <div className="flex flex-wrap items-center gap-2">
+      {userEmail ? (
+        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+          {userEmail}
+        </div>
+      ) : null}
 
-    <Button variant="outline" onClick={handleLogout}>
-      Logout
-    </Button>
+      <Button variant="outline" onClick={handleLogout}>
+        Logout
+      </Button>
 
-    <Button onClick={openNew}>
-      <Plus className="mr-2 h-4 w-4" />
-      Add Supply
-    </Button>
-  </div>
-}
+      <Button onClick={openNew}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Supply
+      </Button>
+    </div>
+  }
+>
+<div className="flex flex-wrap items-center gap-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Smartphone className="h-3.5 w-3.5" />iPhone / Android Ready</div>
                   <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Tablet className="h-3.5 w-3.5" />Tablet Layout</div>
