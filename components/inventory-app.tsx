@@ -479,14 +479,25 @@ setUserEmail(user?.email ?? null);
     </div>
   }
 >
-<div className="flex flex-wrap items-center gap-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Smartphone className="h-3.5 w-3.5" />iPhone / Android Ready</div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Tablet className="h-3.5 w-3.5" />Tablet Layout</div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Cloud className="h-3.5 w-3.5" />Cloud App Architecture</div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"><Users className="h-3.5 w-3.5" />Team Collaboration</div>
-                </div>
-              </SectionCard>
+  <div className="flex flex-wrap items-center gap-3">
+    <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+      <Smartphone className="h-3.5 w-3.5" />
+      iPhone / Android Ready
+    </div>
+    <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+      <Tablet className="h-3.5 w-3.5" />
+      Tablet Layout
+    </div>
+    <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+      <Cloud className="h-3.5 w-3.5" />
+      Cloud App Architecture
+    </div>
+    <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+      <Users className="h-3.5 w-3.5" />
+      Team Collaboration
+    </div>
+  </div>
+</SectionCard>
 
               <SectionCard title="Live App Stack" subtitle="What powers the real build.">
                 <div className="grid gap-3 sm:grid-cols-2">
