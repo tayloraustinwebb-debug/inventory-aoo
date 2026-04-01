@@ -128,12 +128,12 @@ async function fetchWorkspaceContext() {
   if (error) throw error;
 
   return {
-    workspaceId: data.workspace_id as string,
-    u userEmail:
+  workspaceId: data.workspace_id as string,
+  userEmail:
     user.email ??
     (user.user_metadata?.email as string | undefined) ??
     "Signed in",
-  };
+};
 }
 
 async function fetchInventoryItems(workspaceId: string) {
