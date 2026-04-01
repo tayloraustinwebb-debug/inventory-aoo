@@ -178,6 +178,22 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
       const foundWorkspaceId = await fetchWorkspaceId();
       setWorkspaceId(foundWorkspaceId);
 
+      useEffect(() => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUserEmail(session?.user?.email ?? null);
+  });
+
+  supabase.auth.getSession().then(({ data }) => {
+    setUserEmail(data.session?.user?.email ?? null);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+
       const {
   data: { session },
 } = await supabase.auth.getSession();
