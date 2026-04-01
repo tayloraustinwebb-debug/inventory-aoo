@@ -178,11 +178,8 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
       const foundWorkspaceId = await fetchWorkspaceId();
       setWorkspaceId(foundWorkspaceId);
 
-      const {
-  data: { user },
-} = await supabase.auth.getUser();
-
-setUserEmail(user?.email ?? null);
+      const { data: { session } } = await supabase.auth.getSession();
+setUserEmail(session?.user?.email ?? null);
 
       const dbItems = await fetchInventoryItems(foundWorkspaceId);
       setItems(dbItems);
