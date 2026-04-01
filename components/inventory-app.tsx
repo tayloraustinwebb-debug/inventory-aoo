@@ -144,6 +144,7 @@ function SectionCard({ title, subtitle, action, children }: { title: string; sub
 export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppView }) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<AppView>(initialView);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("All");
@@ -176,6 +177,12 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
     try {
       const foundWorkspaceId = await fetchWorkspaceId();
       setWorkspaceId(foundWorkspaceId);
+
+      const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+setUserEmail(user?.email ?? null);
 
       const dbItems = await fetchInventoryItems(foundWorkspaceId);
       setItems(dbItems);
