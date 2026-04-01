@@ -459,21 +459,19 @@ setUserEmail(session?.user?.email ?? null);
   subtitle="Starter build for a real phone and tablet app with cloud sync, team access, reorder workflows, and live pricing architecture."
   action={
     <div className="flex flex-wrap items-center gap-2">
-      {userEmail ? (
-       <div className="flex flex-wrap items-center gap-2">
-  <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
-    {userEmail || "No email loaded"}
-  </div>
+      <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+        {userEmail || "No email loaded"}
+      </div>
 
-  <Button variant="outline" onClick={handleLogout}>
-    Logout
-  </Button>
+      <Button variant="outline" onClick={handleLogout}>
+        Logout
+      </Button>
 
-  <Button onClick={openNew}>
-    <Plus className="mr-2 h-4 w-4" />
-    Add Supply
-  </Button>
-</div>
+      <Button onClick={openNew}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Supply
+      </Button>
+    </div>
   }
 >
   <div className="flex flex-wrap items-center gap-3">
