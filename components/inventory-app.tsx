@@ -266,10 +266,15 @@ export function InventoryApp({
           await fetchWorkspaceContext();
 
         setWorkspaceId(foundWorkspaceId);
-        setUserEmail(userEmail);
+setUserEmail(userEmail);
 
-        const dbItems = await fetchInventoryItems(foundWorkspaceId);
-        setItems(dbItems);
+if (!foundWorkspaceId) {
+  setItems([]);
+  return;
+}
+
+const dbItems = await fetchInventoryItems(foundWorkspaceId);
+setItems(dbItems);
       } catch (error) {
         console.error("Failed to load inventory items", error);
         setItems([]);
