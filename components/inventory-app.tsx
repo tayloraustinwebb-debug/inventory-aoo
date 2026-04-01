@@ -400,8 +400,17 @@ export function InventoryApp({
   }
 
   async function saveItem() {
-    if (!form.name.trim()) return;
-    if (!workspaceId) return;
+  console.log("SAVE CLICKED", { form, workspaceId });
+
+  if (!form.name.trim()) {
+    alert("Missing name");
+    return;
+  }
+
+  if (!workspaceId) {
+    alert("No workspaceId");
+    return;
+  }
 
     const payload = {
       name: form.name,
@@ -443,14 +452,19 @@ export function InventoryApp({
         if (error) throw error;
       }
 
-      const dbItems = await fetchInventoryItems(workspaceId);
-      setItems(dbItems);
-      setEditorOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error("Failed to save item", error);
-    }
-  }
+     const dbItems = await fetchInventoryItems(workspaceId);
+setItems(dbItems);
+setEditorOpen(false);
+resetForm();
+alert("Supply saved");
+  } catch (error) {
+  console.error("Failed to save item", error);
+  alert(
+    error instanceof Error
+      ? error.message
+      : JSON.stringify(error)
+  );
+}
 
   async function adjustQuantity(id: string, delta: number) {
     if (!workspaceId) return;
