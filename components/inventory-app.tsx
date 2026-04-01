@@ -309,7 +309,7 @@ export function InventoryApp({ initialView = "dashboard" }: { initialView?: AppV
 
     if (error) throw error;
 
-    const dbItems = await fetchInventoryItems();
+    const dbItems = await fetchInventoryItems(workspaceId);
     setItems(dbItems);
   } catch (error) {
     console.error("Failed to adjust quantity", error);
