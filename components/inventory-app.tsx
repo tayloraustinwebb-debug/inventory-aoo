@@ -129,7 +129,10 @@ async function fetchWorkspaceContext() {
 
   return {
     workspaceId: data.workspace_id as string,
-    userEmail: user.email ?? null,
+    u userEmail:
+    user.email ??
+    (user.user_metadata?.email as string | undefined) ??
+    "Signed in",
   };
 }
 
@@ -706,7 +709,7 @@ export function InventoryApp({
                 action={
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
-                      {userEmail || "No email loaded"}
+                     {userEmail || "Signed in"}
                     </div>
 
                     <Button variant="outline" onClick={handleLogout}>
