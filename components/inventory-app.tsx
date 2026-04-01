@@ -125,9 +125,12 @@ async function fetchWorkspaceContext() {
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
+ if (error) throw error;
+if (!data) {
+  throw new Error("No workspace membership found.");
+}
 
-  return {
+return {
   workspaceId: data.workspace_id as string,
   userEmail:
     user.email ??
