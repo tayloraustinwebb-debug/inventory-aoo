@@ -266,6 +266,35 @@ export function InventoryApp({
     load();
   }, []);
 
+  useEffect(() => {
+  if (!workspaceId) return;
+
+  const channel = supabase
+    .channel(`inventory_items:${workspaceId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "inventory_items",
+        filter: `workspace_id=eq.${workspaceId}`,
+      },
+      async () => {
+        try {
+          const dbItems = await fetchInventoryItems(workspaceId);
+          setItems(dbItems);
+        } catch (error) {
+          console.error("Failed to refresh realtime inventory", error);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [workspaceId]);
+
   const filteredItems = useMemo(() => {
     return items
       .filter((item) =>
